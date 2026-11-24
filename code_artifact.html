@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>왜요, 그 말이 어때서요? 4,5장 퀴즈</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: 둥글둥글하고 귀여운 Jua 폰트 사용 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #f0fdf4; /* Tailwind green-50 */
+            /* 귀여운 배경 패턴 */
+            background-image: radial-gradient(#bbf7d0 10%, transparent 11%), radial-gradient(#bbf7d0 10%, transparent 11%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            overflow-x: hidden;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 선택지 버튼 호버 및 클릭 효과 */
+        .choice-btn {
+            transition: all 0.2s;
+        }
+        .choice-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #86efac; 
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative">
+
+    <!-- 선생님 메뉴 (우측 상단) -->
+    <button onclick="window.showAdmin()" class="absolute top-4 right-4 text-green-700 bg-white px-3 py-2 rounded-full shadow-md text-sm border border-green-200 hover:bg-green-50 transition z-50 font-bold">
+        👩‍🏫 선생님 시트
+    </button>
+
+    <!-- 메인 컨테이너 -->
+    <div id="app-container" class="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden border-4 border-green-200">
+        
+        <!-- ==================== 1. 시작 화면 ==================== -->
+        <div id="start-screen" class="p-8 flex flex-col items-center justify-center fade-in">
+            <div class="text-6xl mb-4">🍀</div>
+            <h1 class="text-3xl md:text-4xl text-green-700 text-center mb-2 break-keep">왜요, 그 말이 어때서요? 4,5장 퀴즈</h1>
+            <p class="text-green-600 text-center mb-8 text-lg break-keep">4장 세상의 중심은 정해져 있을까?<br>5장 타인의 아픔을 헤아릴 줄 아는 세상을 꿈꾸며</p>
+            
+            <div class="w-full space-y-4 mb-8">
+                <div>
+                    <label class="block text-green-700 mb-1 text-lg">학번</label>
+                    <input type="number" id="student-id" placeholder="예: 10101" class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-green-200 focus:outline-none focus:border-green-400 text-lg">
+                </div>
+                <div>
+                    <label class="block text-green-700 mb-1 text-lg">이름</label>
+                    <input type="text" id="student-name" placeholder="이름을 입력하세요" class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-green-200 focus:outline-none focus:border-green-400 text-lg">
+                </div>
+                <!-- 에러 메시지 표시 영역 -->
+                <p id="start-error" class="text-red-500 text-sm hidden text-center">학번과 이름을 모두 입력해주세요! 🥺</p>
+            </div>
+            
+            <button onclick="startQuiz()" class="w-full bg-green-500 hover:bg-green-600 text-white text-2xl py-4 rounded-2xl shadow-lg choice-btn">
+                퀴즈 시작하기 🚀
+            </button>
+        </div>
+
+        <!-- ==================== 2. 퀴즈 화면 ==================== -->
+        <div id="quiz-screen" class="hidden flex-col h-full fade-in">
+            <!-- 상단 헤더 & 진행률 -->
+            <div class="bg-green-100 p-4 border-b-4 border-green-200">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="quiz-progress-text" class="text-green-700 text-lg">문제 1 / 10</span>
+                    <span id="user-info-display" class="text-green-600 text-sm bg-white px-2 py-1 rounded-full shadow-sm"></span>
+                </div>
+                <div class="w-full bg-white rounded-full h-3">
+                    <div id="progress-bar" class="bg-green-400 h-3 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- 문제 영역 -->
+            <div class="p-6 flex-1 flex flex-col">
+                <h2 id="question-text" class="text-2xl md:text-3xl text-gray-800 leading-snug mb-6 break-keep">
+                    <!-- 문제 내용이 여기에 들어갑니다 -->
+                </h2>
+                <p id="question-hint" class="text-green-600 mb-4 hidden"></p>
+
+                <!-- 선택지 / 입력 영역 -->
+                <div id="options-container" class="space-y-3 flex-1 flex flex-col justify-center">
+                    <!-- JS로 동적 생성됨 -->
+                </div>
+                
+                <!-- 입력/주관식용 다음 버튼 -->
+                <button id="next-btn" onclick="submitInputAnswer()" class="hidden mt-6 w-full bg-green-500 hover:bg-green-600 text-white text-xl py-3 rounded-xl shadow-md choice-btn">
+                    다음으로 ➡️
+                </button>
+                <p id="input-error" class="text-red-500 text-sm mt-2 hidden text-center">정답을 입력해주세요! 🥺</p>
+            </div>
+        </div>
+
+        <!-- ==================== 3. 결과 화면 ==================== -->
+        <div id="result-screen" class="hidden p-8 flex-col items-center justify-center fade-in">
+            <div class="text-6xl mb-4">🏆</div>
+            <h1 class="text-3xl md:text-4xl text-green-700 text-center mb-2">퀴즈 완료!</h1>
+            <p id="result-message" class="text-xl text-gray-700 text-center mb-6">
+                <!-- 결과 메시지 -->
+            </p>
+            
+            <div class="bg-green-50 w-full p-6 rounded-2xl border-2 border-green-200 mb-6">
+                <div class="flex justify-between items-center mb-2 border-b border-green-200 pb-2">
+                    <span class="text-green-700 text-lg">객관식/단답형 점수</span>
+                    <span id="final-score" class="text-3xl text-green-600 font-bold"></span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-700 text-sm block mb-1">나의 실천 다짐 (주관식)</span>
+                    <p id="final-subjective" class="text-gray-800 text-base bg-white p-3 rounded-lg border border-green-100"></p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-green-500 hover:bg-green-600 text-white text-xl py-3 rounded-xl shadow-md choice-btn">
+                처음으로 돌아가기 🔄
+            </button>
+        </div>
+
+        <!-- ==================== 4. 오답 해설 모달 ==================== -->
+        <div id="explanation-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 fade-in p-4">
+            <div class="bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl border-4 border-red-200 flex flex-col items-center">
+                <div class="text-5xl mb-4">💡</div>
+                <h3 class="text-2xl text-red-600 mb-4 font-bold">앗, 아쉬워요!</h3>
+                <p id="explanation-text" class="text-gray-700 text-center mb-6 break-keep text-lg"></p>
+                <button onclick="window.closeExplanationAndNext()" class="w-full bg-red-400 hover:bg-red-500 text-white text-xl py-3 rounded-xl shadow-md choice-btn">
+                    해설 확인하고 다음으로 ➡️
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 5. 선생님(관리자) 화면 ==================== -->
+        <div id="admin-screen" class="hidden p-6 flex-col h-full fade-in relative bg-green-50">
+            <button onclick="window.showScreen('start')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                ✖
+            </button>
+            <h2 class="text-2xl text-green-800 font-bold mb-4 flex items-center"><span class="text-3xl mr-2">📊</span> 학생 결과 시트</h2>
+            
+            <div class="overflow-y-auto flex-1 border-2 border-green-300 rounded-xl bg-white w-full max-h-[60vh] shadow-inner">
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-green-900 bg-green-200 sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="px-3 py-3 w-1/4">학번</th>
+                            <th class="px-3 py-3 w-1/4">이름</th>
+                            <th class="px-3 py-3 text-center w-1/6">점수</th>
+                            <th class="px-3 py-3">다짐</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <tr><td colspan="4" class="text-center py-6 text-gray-500">데이터를 불러오는 중입니다...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-green-700 mt-3 text-center">* 학생들이 퀴즈를 완료하면 이곳에 실시간으로 기록됩니다.</p>
+        </div>
+
+        <!-- ==================== 6. 선생님 비밀번호 확인 모달 ==================== -->
+        <div id="admin-password-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[60] fade-in p-4">
+            <div class="bg-white p-6 rounded-3xl max-w-sm w-full shadow-xl border-4 border-green-200 flex flex-col items-center relative">
+                <button onclick="window.closeAdminPasswordModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold">✖</button>
+                <div class="text-5xl mb-4">🔒</div>
+                <h3 class="text-2xl text-green-700 mb-2 font-bold">선생님 확인</h3>
+                <p class="text-gray-600 mb-6 text-center text-sm">선생님 시트를 보려면<br>비밀번호를 입력해주세요.</p>
+                <input type="password" id="admin-password-input" class="w-full px-4 py-3 rounded-xl bg-green-50 border-2 border-green-200 focus:outline-none focus:border-green-400 text-center mb-2 tracking-widest text-xl" placeholder="****" onkeypress="if(event.key === 'Enter') window.checkAdminPassword()">
+                <p id="admin-password-error" class="text-red-500 text-sm hidden mb-4">비밀번호가 틀렸습니다.</p>
+                <button onclick="window.checkAdminPassword()" class="w-full bg-green-500 hover:bg-green-600 text-white text-xl py-3 rounded-xl shadow-md choice-btn mt-4">
+                    확인
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase 초기화 및 연동 ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-quiz-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, auth, db;
+        try {
+            if (Object.keys(firebaseConfig).length > 0) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            }
+        } catch(e) {
+            console.error("Firebase init err:", e);
+        }
+
+        async function initAuth() {
+            if(!auth) return;
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                listenToResults(); // 인증 완료 후 실시간 선생님 시트 업데이트 시작
+            } catch (e) {
+                console.error("Auth error:", e);
+            }
+        }
+        initAuth();
+        
+        // 결과 클라우드 저장
+        async function saveResult(score, subjective) {
+            if (!auth || !auth.currentUser) return;
+            try {
+                const resultsRef = collection(db, 'artifacts', appId, 'public', 'data', 'quizResults');
+                await addDoc(resultsRef, {
+                    studentId: studentInfo.id,
+                    studentName: studentInfo.name,
+                    score: score,
+                    subjectiveAnswer: subjective,
+                    timestamp: Date.now()
+                });
+            } catch(e) {
+                console.error("Save error:", e);
+            }
+        }
+
+        // 결과 실시간 불러오기 (선생님 시트용)
+        function listenToResults() {
+            if (!auth || !auth.currentUser) return;
+            const resultsRef = collection(db, 'artifacts', appId, 'public', 'data', 'quizResults');
+            onSnapshot(resultsRef, (snapshot) => {
+                const tbody = document.getElementById('admin-table-body');
+                if(!tbody) return;
+                
+                const results = [];
+                snapshot.forEach(doc => results.push(doc.data()));
+                
+                // 최신 제출순으로 정렬
+                results.sort((a, b) => b.timestamp - a.timestamp);
+                
+                tbody.innerHTML = '';
+                if(results.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-500">아직 제출한 학생이 없습니다.</td></tr>';
+                    return;
+                }
+
+                results.forEach(data => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-green-100 hover:bg-green-100 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-3 py-2 text-gray-700">${data.studentId || '-'}</td>
+                        <td class="px-3 py-2 font-bold text-gray-900">${data.studentName || '-'}</td>
+                        <td class="px-3 py-2 text-center text-green-700 font-bold">${data.score || 0}</td>
+                        <td class="px-3 py-2 text-sm text-gray-700 break-words max-w-[200px] leading-snug">${data.subjectiveAnswer || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }, (error) => {
+                console.error("Listen error:", error);
+            });
+        }
+
+        // --- 기존 기능과 모듈 시스템 연결 ---
+        window.showScreen = showScreen;
+        window.startQuiz = startQuiz;
+        window.submitInputAnswer = submitInputAnswer;
+        window.closeExplanationAndNext = closeExplanationAndNext;
+        
+        window.showAdmin = function() {
+            const pwdInput = document.getElementById('admin-password-input');
+            pwdInput.value = '';
+            document.getElementById('admin-password-error').classList.add('hidden');
+            const modal = document.getElementById('admin-password-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => pwdInput.focus(), 100); // 모달이 뜬 후 입력창 자동 선택
+        };
+
+        window.closeAdminPasswordModal = function() {
+            const modal = document.getElementById('admin-password-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.checkAdminPassword = function() {
+            const pwd = document.getElementById('admin-password-input').value;
+            if (pwd === '6205') {
+                window.closeAdminPasswordModal();
+                showScreen('admin');
+            } else {
+                document.getElementById('admin-password-error').classList.remove('hidden');
+                document.getElementById('admin-password-input').focus();
+            }
+        };
+
+        // 문제 데이터 정의
+        const quizData = [
+            {
+                id: 1,
+                type: "ox",
+                question: "우리가 장난이나 유행어처럼 무심코 쓰는 말 중에는 특정 지역이나 사람을 깎아내리는 '차별의 언어'가 숨어 있을 수 있다.",
+                options: ["O", "X"],
+                answer: 0, // "O"
+                explanation: "우리가 흔히 쓰는 유행어나 장난 섞인 말 속에도 누군가를 혐오하고 차별하는 뜻이 담긴 경우가 많으므로 항상 말의 의미를 생각해야 합니다."
+            },
+            {
+                id: 2,
+                type: "mc", // 다중선택
+                question: "이러한 '혐오 표현'과 '차별의 언어'가 우리 사회에 미치는 영향으로 알맞지 않은 것은 무엇일까요?",
+                options: [
+                    "누군가에게 깊은 마음의 상처를 준다.",
+                    "사람들 사이에 벽을 만들고 사회적 갈등을 일으킨다.",
+                    "사회를 더 재밌고 유쾌하게 만들어 준다.",
+                    "특정 집단에 대한 잘못된 고정관념과 편견을 심어준다."
+                ],
+                answer: 2, // 3번
+                explanation: "혐오 표현은 사람들에게 상처를 주고 사회적 갈등을 유발합니다. 결코 우리 사회를 재밌거나 유쾌하게 만들지 않는 언어폭력입니다."
+            },
+            {
+                id: 3,
+                type: "ox",
+                question: "나의 진정한 가치는 내가 입는 옷의 브랜드, 부모님의 직업, 내가 사는 아파트의 가격에 의해 결정된다.",
+                options: ["O", "X"],
+                answer: 1, // "X"
+                explanation: "사람의 진정한 가치는 겉으로 보이는 조건(옷, 집, 부모님의 직업 등)이 아니라, 그 사람의 생각과 행동, 타인을 존중하는 태도로 결정됩니다."
+            },
+            {
+                id: 4,
+                type: "short", // 단답형
+                question: "성별, 장애, 인종, 출신 지역, 졸업한 학교 등을 이유로 특정 집단을 깎아내리거나 모욕하고 공격하는 말을 두 글자로 'OO 표현'이라고 합니다. 이 말은 무엇일까요?",
+                hint: "(초성 힌트: ㅎㅇ)",
+                answer: "혐오",
+                explanation: "정답은 '혐오'입니다. 성별, 인종, 지역, 장애 등을 이유로 특정 집단을 깎아내리고 모욕하는 것은 심각한 '혐오 표현'입니다."
+            },
+            {
+                id: 5,
+                type: "mc",
+                question: "답답하게 행동하거나 마음에 들지 않는 캐릭터(사람)를 가리켜 '발암캐'라고 부르는 유행어가 가진 가장 큰 문제점은 무엇일까요?",
+                options: [
+                    "요즘 유행하는 줄임말이 아니어서",
+                    "병을 치료하는 의료진을 무시하는 단어여서",
+                    "실제 암 투병으로 크나큰 고통을 겪고 있는 환자와 그 가족들의 아픔을 가벼운 농담거리로 만들기 때문에",
+                    "단어의 뜻이 너무 어려워서 이해하기 힘들기 때문에"
+                ],
+                answer: 2, // 3번
+                explanation: "생사가 걸린 끔찍한 고통(암)을 가벼운 농담이나 짜증을 표현하는 데 쓰는 것은 실제 환자와 가족들에게 큰 상처를 주는 폭력입니다."
+            },
+            {
+                id: 6,
+                type: "mc",
+                question: "성폭력 등 범죄 피해자는 항상 우울하고, 매일 울고 있어야만 진짜 피해자라고 생각하는 편견을 '피해자다움'이라고 합니다. 이 '피해자다움'을 강요할 때 발생하는 문제로 알맞은 것은?",
+                options: [
+                    "피해자가 범죄의 충격에서 더 빨리 벗어나 일상을 회복하게 돕는다.",
+                    "피해자가 밥을 먹거나 웃기만 해도 \"진짜 피해자가 맞느냐\"며 의심하고, 피해자에게 책임을 떠넘기는 폭력이 된다.",
+                    "가해자가 자신의 잘못을 더 깊이 반성하게 만든다.",
+                    "수사 기관이 범죄의 증거를 찾는 데 큰 도움을 준다."
+                ],
+                answer: 1, // 2번
+                explanation: "'피해자다움'은 피해자를 정형화된 틀에 가두고, 그 틀에서 벗어나면 도리어 피해자를 의심하고 비난하게 만드는 위험한 2차 가해입니다."
+            },
+            {
+                id: 7,
+                type: "mc",
+                question: "타인의 아픔을 다루는 뉴스 기사나 사회적 비극을 접했을 때, 우리가 가져야 할 가장 성숙한 태도는 무엇일까요?",
+                options: [
+                    "재미있는 가십거리나 자극적인 썰(이야기)로 소비하며 친구들과 웃고 떠든다.",
+                    "\"저 사람도 뭔가 잘못한 게 있겠지\"라며 섣불리 피해자를 탓한다.",
+                    "조회수를 올리기 위해 자극적인 악성 댓글을 단다.",
+                    "타인의 고통에 깊이 공감하며, 이런 비극이 다시 일어나지 않으려면 우리 사회가 무엇을 바꿔야 할지 함께 고민한다."
+                ],
+                answer: 3, // 4번
+                explanation: "타인의 고통을 단순한 가십거리로 삼지 않고, 깊이 공감하며 구조적인 문제를 함께 고민하고 연대하는 것이 성숙한 시민의 자세입니다."
+            },
+            {
+                id: 8,
+                type: "short",
+                question: "다른 사람의 기쁨은 물론이고, 특히 억울함이나 아픔을 마치 내 것처럼 느끼고 이해하는 마음의 능력을 두 글자로 무엇이라고 할까요?",
+                hint: "(이 퀴즈의 핵심 주제이기도 합니다.)",
+                answer: "공감",
+                explanation: "정답은 '공감'입니다. 타인의 고통에 대한 깊은 '공감'이야말로 우리 사회의 혐오 표현과 차별을 멈추게 하는 가장 강력한 무기입니다."
+            },
+            {
+                id: 9,
+                type: "mc",
+                question: "피해자에게 가장 큰 상처를 주는 질문은 무엇일까요?",
+                options: [
+                    "어떤 도움이 필요해?",
+                    "많이 힘들었겠다.",
+                    "왜 바로 신고하지 않았어?",
+                    "무슨 일이 있어도 네 곁에 있을게."
+                ],
+                answer: 2, // 3번 (피해자를 탓하는 질문)
+                explanation: "\"왜 바로 피하지/신고하지 않았어?\"라며 범죄의 원인과 책임을 피해자에게 묻거나 의심하는 질문은 피해자에게 자책감을 주어 큰 상처를 남깁니다."
+            },
+            {
+                id: 10,
+                type: "subjective", // 주관식 서술형
+                question: "유튜브나 SNS를 보면 누군가의 끔찍한 비극이나 아픔을 자극적인 제목과 가십거리로 만들어 조회수를 올리는 콘텐츠가 많습니다. 타인의 고통을 단순한 '볼거리'나 '유머'로 소비하지 않고, 아픔에 깊이 공감하는 성숙한 사회를 만들기 위해 중학생인 내가 일상에서 당장 실천할 수 있는 작은 행동은 무엇이 있을지 한 가지 구체적으로 적어보세요.",
+                answer: "", // 자동 채점 안함
+                explanation: ""
+            }
+        ];
+
+        // 상태 변수
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentInfo = { id: "", name: "" };
+        let subjectiveAnswer = "";
+
+        // DOM 요소
+        const screens = {
+            start: document.getElementById('start-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            admin: document.getElementById('admin-screen')
+        };
+        const questionText = document.getElementById('question-text');
+        const questionHint = document.getElementById('question-hint');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('quiz-progress-text');
+        const inputError = document.getElementById('input-error');
+
+        // 해설 모달 관련 DOM 요소
+        const explanationModal = document.getElementById('explanation-modal');
+        const explanationText = document.getElementById('explanation-text');
+
+        // 화면 전환 함수
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => {
+                screen.classList.add('hidden');
+                screen.classList.remove('flex');
+            });
+            screens[screenName].classList.remove('hidden');
+            screens[screenName].classList.add('flex');
+            
+            // 애니메이션 재시작을 위한 트릭
+            screens[screenName].classList.remove('fade-in');
+            void screens[screenName].offsetWidth;
+            screens[screenName].classList.add('fade-in');
+        }
+
+        // 퀴즈 시작
+        function startQuiz() {
+            const idInput = document.getElementById('student-id').value.trim();
+            const nameInput = document.getElementById('student-name').value.trim();
+            const errorMsg = document.getElementById('start-error');
+
+            if (!idInput || !nameInput) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            studentInfo.id = idInput;
+            studentInfo.name = nameInput;
+            document.getElementById('user-info-display').textContent = `${idInput} ${nameInput}`;
+            
+            errorMsg.classList.add('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            showScreen('quiz');
+            loadQuestion();
+        }
+
+        // 문제 렌더링
+        function loadQuestion() {
+            inputError.classList.add('hidden');
+            const q = quizData[currentQuestionIndex];
+            
+            // 상단 진행상황 업데이트
+            progressText.textContent = `문제 ${currentQuestionIndex + 1} / ${quizData.length}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+            // 문제 텍스트 및 힌트 세팅
+            questionText.innerHTML = `<span class="text-green-500 mr-2">Q${q.id}.</span> ${q.question}`;
+            if (q.hint) {
+                questionHint.textContent = q.hint;
+                questionHint.classList.remove('hidden');
+            } else {
+                questionHint.classList.add('hidden');
+            }
+
+            // 선택지 영역 초기화
+            optionsContainer.innerHTML = '';
+            nextBtn.classList.add('hidden');
+
+            // 문제 유형별 렌더링
+            if (q.type === 'ox' || q.type === 'mc') {
+                q.options.forEach((opt, index) => {
+                    const btn = document.createElement('button');
+                    // OX 퀴즈는 버튼을 나란히, 객관식은 세로로 배치
+                    const btnClass = q.type === 'ox' 
+                        ? 'w-full h-32 text-6xl font-bold text-green-600 bg-green-50 hover:bg-green-100 border-4 border-green-200 rounded-3xl choice-btn flex items-center justify-center'
+                        : 'w-full text-left p-4 text-lg bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-xl choice-btn transition-colors';
+                    
+                    btn.className = btnClass;
+                    btn.innerHTML = q.type === 'ox' ? opt : `<span class="font-bold text-green-500 mr-2">${index + 1}.</span> ${opt}`;
+                    btn.onclick = () => selectOption(index);
+                    optionsContainer.appendChild(btn);
+                });
+                
+                if (q.type === 'ox') {
+                    optionsContainer.className = "flex flex-row space-x-4 h-full items-center";
+                } else {
+                    optionsContainer.className = "space-y-3 flex flex-col";
+                }
+
+            } else if (q.type === 'short') {
+                optionsContainer.className = "space-y-3 flex flex-col";
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'short-answer-input';
+                input.placeholder = '정답을 입력하세요';
+                input.className = 'w-full p-4 text-xl border-4 border-green-200 rounded-2xl bg-green-50 focus:outline-none focus:border-green-400 text-center';
+                input.onkeypress = (e) => { if(e.key === 'Enter') submitInputAnswer(); };
+                optionsContainer.appendChild(input);
+                nextBtn.classList.remove('hidden');
+                
+                // 자동으로 포커스
+                setTimeout(() => input.focus(), 100);
+
+            } else if (q.type === 'subjective') {
+                optionsContainer.className = "space-y-3 flex flex-col flex-1";
+                const textarea = document.createElement('textarea');
+                textarea.id = 'subjective-input';
+                textarea.placeholder = '자신의 생각을 자유롭게 적어주세요...';
+                textarea.className = 'w-full h-40 p-4 text-lg border-4 border-green-200 rounded-2xl bg-green-50 focus:outline-none focus:border-green-400 resize-none';
+                optionsContainer.appendChild(textarea);
+                nextBtn.classList.remove('hidden');
+                nextBtn.innerHTML = '제출하고 결과 보기 🎉';
+            }
+        }
+
+        // 객관식/OX 정답 선택 처리
+        function selectOption(selectedIndex) {
+            const q = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('button');
+            
+            // 모든 버튼 비활성화 (중복 클릭 방지)
+            buttons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = selectedIndex === q.answer;
+            if (isCorrect) score++;
+
+            // 시각적 피드백
+            buttons[selectedIndex].classList.remove('bg-green-50', 'border-green-200');
+            if (isCorrect) {
+                buttons[selectedIndex].classList.add('bg-blue-100', 'border-blue-400');
+                showFloatingEmoji('⭕');
+                
+                // 정답일 경우 일정 시간 후 다음 문제로 자동 이동
+                setTimeout(() => {
+                    moveToNextQuestion();
+                }, 1200); 
+
+            } else {
+                buttons[selectedIndex].classList.add('bg-red-100', 'border-red-400');
+                // 정답 표시
+                buttons[q.answer].classList.remove('bg-green-50', 'border-green-200');
+                buttons[q.answer].classList.add('bg-blue-100', 'border-blue-400');
+                showFloatingEmoji('❌');
+                
+                // 오답일 경우 이모지 애니메이션 후 해설 모달 표시
+                setTimeout(() => {
+                    explanationText.textContent = q.explanation;
+                    explanationModal.classList.remove('hidden');
+                    explanationModal.classList.add('flex');
+                }, 800);
+            }
+        }
+
+        // 주관식/단답형 정답 제출 처리
+        function submitInputAnswer() {
+            const q = quizData[currentQuestionIndex];
+            
+            if (q.type === 'short') {
+                const inputVal = document.getElementById('short-answer-input').value.trim();
+                if (!inputVal) {
+                    inputError.classList.remove('hidden');
+                    return;
+                }
+                inputError.classList.add('hidden');
+                
+                if (inputVal === q.answer) {
+                    score++;
+                    showFloatingEmoji('⭕');
+                    setTimeout(() => {
+                        moveToNextQuestion();
+                    }, 1000);
+                } else {
+                    showFloatingEmoji('❌');
+                    setTimeout(() => {
+                        explanationText.textContent = q.explanation;
+                        explanationModal.classList.remove('hidden');
+                        explanationModal.classList.add('flex');
+                    }, 800);
+                }
+
+            } else if (q.type === 'subjective') {
+                const textVal = document.getElementById('subjective-input').value.trim();
+                if (!textVal) {
+                    inputError.classList.remove('hidden');
+                    return;
+                }
+                inputError.classList.add('hidden');
+                subjectiveAnswer = textVal; // 마지막 결과 화면을 위해 저장
+                moveToNextQuestion();
+            }
+        }
+
+        // 해설 모달 닫고 다음 문제로 넘어가기
+        function closeExplanationAndNext() {
+            explanationModal.classList.add('hidden');
+            explanationModal.classList.remove('flex');
+            moveToNextQuestion();
+        }
+
+        // 정답/오답 이모지 애니메이션
+        function showFloatingEmoji(emojiText) {
+            const emoji = document.createElement('div');
+            emoji.textContent = emojiText;
+            emoji.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl z-50 animate-bounce pointer-events-none';
+            document.body.appendChild(emoji);
+            
+            setTimeout(() => {
+                emoji.style.opacity = '0';
+                emoji.style.transition = 'opacity 0.5s';
+                setTimeout(() => emoji.remove(), 500);
+            }, 700);
+        }
+
+        // 다음 문제로 이동 또는 결과 화면
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                // 화면 리프레시 효과
+                const quizScreen = document.getElementById('quiz-screen');
+                quizScreen.classList.remove('fade-in');
+                void quizScreen.offsetWidth;
+                quizScreen.classList.add('fade-in');
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // 결과 화면 표시
+        function showResults() {
+            showScreen('result');
+            
+            const resultMsg = document.getElementById('result-message');
+            const scoreDisplay = document.getElementById('final-score');
+            const subjectiveDisplay = document.getElementById('final-subjective');
+
+            // 객관식, 단답형 총 9문제
+            const totalGradable = 9; 
+            
+            scoreDisplay.textContent = `${score} / ${totalGradable}`;
+            
+            if (score === totalGradable) {
+                resultMsg.innerHTML = `<span class="font-bold text-green-600">${studentInfo.name}</span> 학생, 대단해요!<br>타인의 아픔에 깊이 공감하는 따뜻한 마음씨를 가졌군요! 🌟`;
+            } else if (score >= 6) {
+                resultMsg.innerHTML = `<span class="font-bold text-green-600">${studentInfo.name}</span> 학생, 참 잘했어요!<br>앞으로도 차별 없는 언어 사용에 앞장서 주세요! 👍`;
+            } else {
+                resultMsg.innerHTML = `<span class="font-bold text-green-600">${studentInfo.name}</span> 학생, 퀴즈를 풀며 많은 것을 배웠기를 바라요.<br>우리의 작은 노력이 세상을 따뜻하게 만듭니다! 🌱`;
+            }
+
+            subjectiveDisplay.textContent = subjectiveAnswer || "입력된 다짐이 없습니다.";
+
+            // 클라우드 저장소(Firebase)에 학생 결과 기록 (선생님 시트용)
+            saveResult(score, subjectiveAnswer);
+        }
+    </script>
+</body>
+</html>
